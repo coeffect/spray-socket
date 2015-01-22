@@ -9,3 +9,5 @@ libraryDependencies ++= Seq(
   sprayCan)
 
 publish := ()
+publishArtifact := false
+publishTo := Some(Resolver.file("Null repository", file("target/null")))

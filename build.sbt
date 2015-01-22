@@ -2,7 +2,7 @@ lazy val modules = Seq(
   `spray-socket`,
   `spray-socket-routing`)
 
-lazy val examples = Seq(
+lazy val autobahn = Seq(
   `spray-socket-fuzzingclient`,
   `spray-socket-fuzzingserver`)
 
@@ -10,7 +10,7 @@ lazy val spray = project
   .in(file("."))
   .settings(commonSettings: _*)
   .dependsOn(modules.map(module => module: ClasspathDep[ProjectReference]): _*)
-  .aggregate((modules ++ examples).map(module => module: ProjectReference): _*)
+  .aggregate((modules ++ autobahn).map(module => module: ProjectReference): _*)
 
 lazy val `spray-socket` = project
   .in(file("spray-socket"))
@@ -22,18 +22,18 @@ lazy val `spray-socket-routing` = project
   .dependsOn(`spray-socket`)
 
 lazy val `spray-socket-fuzzingclient` = project
-  .in(file("examples/fuzzingclient"))
+  .in(file("autobahn/fuzzingclient"))
   .settings(commonSettings: _*)
   .dependsOn(`spray-socket`)
 
 lazy val `spray-socket-fuzzingserver` = project
-  .in(file("examples/fuzzingserver"))
+  .in(file("autobahn/fuzzingserver"))
   .settings(commonSettings: _*)
   .dependsOn(`spray-socket`, `spray-socket-routing`)
 
 lazy val commonSettings = projectSettings ++ docSettings
 
-lazy val moduleSettings = commonSettings ++ compileSettings
+lazy val moduleSettings = commonSettings ++ compileSettings ++ publishSettings
 
 lazy val projectSettings = Seq(
   version := "1.3.2-SNAPSHOT",
@@ -94,3 +94,5 @@ lazy val publishSettings = Seq(
 Autobahn.settings
 
 publish := ()
+publishArtifact := false
+publishTo := Some(Resolver.file("Null repository", file("target/null")))
