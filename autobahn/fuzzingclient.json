@@ -1,0 +1,12 @@
+{
+  "outdir": "./target/autobahn/servers",
+  "servers": [
+    {
+      "agent": "spray-socket-server",
+      "url": "ws://127.0.0.1:9001"
+    }
+  ],
+  "cases": ["*"],
+  "exclude-cases": [],
+  "exclude-agent-cases": {}
+}
