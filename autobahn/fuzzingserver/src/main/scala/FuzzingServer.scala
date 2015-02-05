@@ -21,7 +21,7 @@ class FuzzingServer extends Actor with ActorLogging with HttpSocketService {
     websocket(self)
   }
 
-  def socketMode: Receive = {
+  def socketMode(socket: ActorRef): Receive = {
     case frame: Frame if frame.opcode.isData =>
       log.info("Bouncing " + frame)
       sender ! frame
@@ -30,9 +30,9 @@ class FuzzingServer extends Actor with ActorLogging with HttpSocketService {
       context.stop(self)
   }
 
-  override def onConnectionUpgraded(): Unit = {
+  override def onConnectionUpgraded(socket: ActorRef): Unit = {
     log.info("Upgraded to WebSocket")
-    context.become(socketMode)
+    context.become(socketMode(socket))
   }
 
   override def onConnectionClosed(event: Tcp.ConnectionClosed): Unit = {

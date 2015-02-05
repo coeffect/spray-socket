@@ -8,9 +8,7 @@ import spray.http.StatusCodes._
 import spray.routing.directives._
 import spray.util._
 
-object HttpSocketService extends HttpSocketService
-
-trait HttpSocketService extends Directives with WebSocketDirectives {
+trait HttpSocketService extends Actor with Directives with WebSocketDirectives {
   def runRoute(route: Route)(implicit eh: ExceptionHandler, rh: RejectionHandler, ac: ActorContext,
                              rs: RoutingSettings, log: LoggingContext): Actor.Receive = {
     val sealedExceptionHandler = eh orElse ExceptionHandler.default
@@ -34,7 +32,7 @@ trait HttpSocketService extends Directives with WebSocketDirectives {
         // by default we register ourselves as the handler for a new connection
         ac.sender ! Tcp.Register(ac.self)
 
-      case HttpSocket.Upgraded                => onConnectionUpgraded
+      case HttpSocket.Upgraded            => onConnectionUpgraded(sender)
 
       case x: Tcp.ConnectionClosed        => onConnectionClosed(x)
 
@@ -44,7 +42,7 @@ trait HttpSocketService extends Directives with WebSocketDirectives {
 
   def onConnectionClosed(ev: Tcp.ConnectionClosed): Unit = ()
 
-  def onConnectionUpgraded(): Unit = ()
+  def onConnectionUpgraded(socket: ActorRef): Unit = ()
 
   def sealRoute(route: Route)(implicit eh: ExceptionHandler, rh: RejectionHandler): Route =
     (handleExceptions(eh) & handleRejections(sealRejectionHandler(rh)))(route)
