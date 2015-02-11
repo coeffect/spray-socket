@@ -26,7 +26,7 @@ import spray.routing._
 
 object EchoServer extends App {
   val host = if (args.length > 0) args(0) else "localhost"
-  val port = if (args.length > 1) args(1).toShort else 9001
+  val port = if (args.length > 1) args(1).toInt else 9001
 
   implicit val system = ActorSystem()
   val server = system.actorOf(Props(classOf[EchoServer]))
@@ -84,11 +84,12 @@ import akka.io._
 import org.jboss.jreadline.console._
 import scala.concurrent._
 import spray.can._
+import spray.can.socket._
 import spray.http._
 
 object ConsoleClient extends App {
   val host = if (args.length > 0) args(0) else "localhost"
-  val port = if (args.length > 1) args(1).toShort else 9001
+  val port = if (args.length > 1) args(1).toInt else 9001
   val path = if (args.length > 2) args(2) else "/"
 
   implicit val system = ActorSystem()
@@ -96,16 +97,16 @@ object ConsoleClient extends App {
   system.awaitTermination()
 }
 
-private class ConsoleClient(host: String, port: Short, path: String) extends Actor {
+private class ConsoleClient(host: String, port: Int, path: String) extends Actor {
   import context._
 
-  IO(HttpSocket) ! Http.Connect(host, port, true)
+  IO(HttpSocket) ! Http.Connect(host, port, sslEncryption = false)
 
   private val console = new Console()
 
   private val request = HttpRequest(HttpMethods.GET, path)
 
-  private val Handshake = websocket.HandshakeRequest(request)
+  private val Handshake = HandshakeRequest(request)
 
   override def receive: Receive = httpMode
 
@@ -136,11 +137,11 @@ private class ConsoleClient(host: String, port: Short, path: String) extends Act
   }
 
   private def socketMode(socket: ActorRef): Receive = {
-    case frame: websocket.Frame =>
+    case frame: Frame =>
       onMessage(frame)
 
     case command: String =>
-      socket ! websocket.Frame.Text(command)
+      socket ! Frame.Text(command)
 
     case _: Http.ConnectionClosed =>
       onClose()
@@ -160,8 +161,8 @@ private class ConsoleClient(host: String, port: Short, path: String) extends Act
     }
   }
 
-  private def onMessage(frame: websocket.Frame): Unit = {
-    if (frame.opcode == websocket.Opcode.Text) {
+  private def onMessage(frame: Frame): Unit = {
+    if (frame.opcode == Opcode.Text) {
       val message = frame.payload.utf8String
       console.pushToStdOut("\n<< ")
       console.pushToStdOut(message)
